@@ -6,6 +6,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Navbar from "./components/layout/Navbar";
+import WhatsAppButton from "./components/layout/WhatsAppButton";
 import { Toaster } from "sonner";
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
+        <WhatsAppButton />
       </div>
     </Router>
   );

@@ -28,7 +28,7 @@ function HomePage() {
               <img
                 src="/lp_logo.png"
                 alt="Lucy's Perfumery Logo"
-                className="h-20 rounded-md border mt-8 md:mt-0 border-pink-200 w-20 sm:h-24 sm:w-24 mb-3 object-contain"
+                className="h-20 rounded-md border-2 mt-8 md:mt-0 border-primary/20 w-20 sm:h-24 sm:w-24 mb-3 object-contain"
               />
               <p className="text-2xl font-semibold">Lucy's Perfumery</p>
             </div>

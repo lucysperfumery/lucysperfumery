@@ -27,7 +27,7 @@ export default function Navbar() {
               <img
                 src="/lp_logo.png"
                 alt="Lucy's Perfumery Logo"
-                className="h-10 w-10 lg:h-12 lg:w-12 object-contain rounded-md border border-pink-200"
+                className="h-10 w-10 lg:h-12 lg:w-12 object-contain rounded-md border-2 border-primary/20"
               />
               <h1 className="text-xl lg:text-2xl font-semibold">
                 Lucy's Perfumery

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Package, MapPin, Phone, Mail, FileText } from "lucide-react";
+import { CheckCircle, Package, MapPin, Phone, Mail, FileText, CreditCard } from "lucide-react";
 
 interface OrderData {
   orderNumber: string;
@@ -21,6 +21,8 @@ interface OrderData {
   }>;
   totalPrice: number;
   orderDate: string;
+  paymentReference?: string;
+  paymentStatus?: string;
 }
 
 function OrderConfirmation() {
@@ -92,6 +94,26 @@ function OrderConfirmation() {
                     : "Delivery"}
                 </span>
               </div>
+              {orderData.paymentReference && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Payment Reference
+                  </span>
+                  <span className="font-semibold font-mono text-xs">
+                    {orderData.paymentReference}
+                  </span>
+                </div>
+              )}
+              {orderData.paymentStatus && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Payment Status
+                  </span>
+                  <span className="font-semibold text-green-600 dark:text-green-400 capitalize">
+                    {orderData.paymentStatus}
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
 

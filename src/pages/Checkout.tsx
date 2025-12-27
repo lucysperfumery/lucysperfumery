@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,14 +18,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2, Loader2 } from "lucide-react";
+import {
+  initializePayment,
+  convertToKobo,
+  type PaystackResponse,
+} from "@/lib/paystack";
 
 // Form schema with conditional validation
 const checkoutSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     phone: z.string().min(5, "Phone number is required"),
-    email: z.string().email("Invalid email address").optional().or(z.literal("")),
+    email: z.string().email("Invalid email address").min(1, "Email is required for payment"),
     deliveryMethod: z.enum(["pickup", "delivery"]),
     address: z.string().optional(),
     country: z.string().optional(),
@@ -62,6 +67,7 @@ function Checkout() {
   const navigate = useNavigate();
   const { items, getTotalPrice, clearCart, removeItem, updateQuantity } =
     useCartStore();
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -87,19 +93,68 @@ function Checkout() {
   }, [items.length, navigate]);
 
   const onSubmit = (data: CheckoutFormValues) => {
+    setIsProcessingPayment(true);
+
+    // Calculate total amount in kobo
+    const totalAmount = convertToKobo(getTotalPrice());
+
+    // Prepare payment data
+    const paymentData = {
+      email: data.email,
+      amount: totalAmount,
+      firstName: data.name,
+      lastName: "",
+      phone: data.phone,
+      metadata: {
+        deliveryMethod: data.deliveryMethod,
+        address: data.deliveryMethod === "delivery" ? data.address || "" : "",
+        country: data.deliveryMethod === "delivery" ? data.country || "" : "",
+        cartItems: JSON.stringify(
+          items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          }))
+        ),
+      },
+    };
+
+    // Initialize Paystack payment
+    initializePayment(
+      paymentData,
+      (response: PaystackResponse) => {
+        // Payment successful
+        handlePaymentSuccess(response, data);
+      },
+      () => {
+        // Payment cancelled or closed
+        setIsProcessingPayment(false);
+        toast.error("Payment cancelled", {
+          description: "You can try again when ready",
+        });
+      }
+    );
+  };
+
+  const handlePaymentSuccess = (
+    response: PaystackResponse,
+    formData: CheckoutFormValues
+  ) => {
     // Generate order number
     const orderNumber = `LP${Date.now().toString().slice(-8)}`;
 
     // Prepare order data
     const orderData = {
       orderNumber,
-      name: data.name,
-      phone: data.phone,
-      email: data.email || undefined,
-      deliveryMethod: data.deliveryMethod,
-      address: data.deliveryMethod === "delivery" ? data.address : undefined,
-      country: data.deliveryMethod === "delivery" ? data.country : undefined,
-      specialInstructions: data.specialInstructions || undefined,
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      deliveryMethod: formData.deliveryMethod,
+      address:
+        formData.deliveryMethod === "delivery" ? formData.address : undefined,
+      country:
+        formData.deliveryMethod === "delivery" ? formData.country : undefined,
+      specialInstructions: formData.specialInstructions || undefined,
       items: items.map((item) => ({
         id: item.id,
         name: item.name,
@@ -108,6 +163,8 @@ function Checkout() {
       })),
       totalPrice: getTotalPrice(),
       orderDate: new Date().toISOString(),
+      paymentReference: response.reference,
+      paymentStatus: "paid",
     };
 
     // Save order to localStorage
@@ -117,9 +174,12 @@ function Checkout() {
     clearCart();
 
     // Show success toast
-    toast.success("Order placed successfully!", {
-      description: `Order #${orderNumber}`,
+    toast.success("Payment successful!", {
+      description: `Order #${orderNumber} has been placed`,
     });
+
+    // Reset processing state
+    setIsProcessingPayment(false);
 
     // Redirect to order confirmation
     navigate("/order-confirmation");
@@ -235,7 +295,7 @@ function Checkout() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email (Optional)</FormLabel>
+                          <FormLabel>Email *</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -316,8 +376,16 @@ function Checkout() {
                       type="submit"
                       size="lg"
                       className="w-full lg:hidden"
+                      disabled={isProcessingPayment}
                     >
-                      Place Order
+                      {isProcessingPayment ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Proceed to Payment"
+                      )}
                     </Button>
                   </form>
                 </Form>
@@ -421,8 +489,16 @@ function Checkout() {
                   onClick={form.handleSubmit(onSubmit)}
                   size="lg"
                   className="w-full hidden lg:block"
+                  disabled={isProcessingPayment}
                 >
-                  Place Order
+                  {isProcessingPayment ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Proceed to Payment"
+                  )}
                 </Button>
               </CardContent>
             </Card>
