@@ -2,43 +2,63 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Package, MapPin, Phone, Mail, FileText, CreditCard } from "lucide-react";
+import {
+  CheckCircle,
+  Package,
+  MapPin,
+  Phone,
+  Mail,
+  FileText,
+} from "lucide-react";
 
 interface OrderData {
+  _id: string;
   orderNumber: string;
-  name: string;
-  phone: string;
-  email?: string;
-  deliveryMethod: "pickup" | "delivery";
-  address?: string;
-  country?: string;
-  specialInstructions?: string;
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+  };
   items: Array<{
-    id: string;
+    productId: string;
     name: string;
     quantity: number;
     price: number;
   }>;
-  totalPrice: number;
-  orderDate: string;
-  paymentReference?: string;
-  paymentStatus?: string;
+  totalAmount: number;
+  currency: string;
+  status: string;
+  paystackReference: string;
+  metadata?: {
+    deliveryMethod?: string;
+    deliveryAddress?: string;
+    country?: string;
+    specialInstructions?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 function OrderConfirmation() {
   const navigate = useNavigate();
-  const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [orderData, setOrderData] = useState<OrderData | null>(() => {
+    try {
+      const saved = localStorage.getItem("lastOrder");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
-    // Retrieve order data from localStorage
-    const savedOrder = localStorage.getItem("lastOrder");
-    if (savedOrder) {
-      setOrderData(JSON.parse(savedOrder));
-    } else {
-      // If no order data, redirect to home
-      navigate("/");
+    if (orderData) {
+      // Clear localStorage after retrieving order data
+      localStorage.removeItem("lastOrder");
+      return;
     }
-  }, [navigate]);
+    // If no order data, redirect to home
+    navigate("/");
+  }, [orderData, navigate]);
 
   if (!orderData) {
     return null;
@@ -68,52 +88,54 @@ function OrderConfirmation() {
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Order Number
+                  Order ID
                 </span>
-                <span className="font-semibold">{orderData.orderNumber}</span>
+                <span className="font-semibold font-mono text-xs">
+                  {orderData.orderNumber}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">
                   Order Date
                 </span>
                 <span className="font-semibold">
-                  {new Date(orderData.orderDate).toLocaleDateString("en-US", {
+                  {new Date(orderData.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
+                </span>
+              </div>
+              {orderData.metadata?.deliveryMethod && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Delivery Method
+                  </span>
+                  <span className="font-semibold capitalize">
+                    {orderData.metadata.deliveryMethod === "pickup"
+                      ? "Shop Pickup"
+                      : "Delivery"}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                  Payment Reference
+                </span>
+                <span className="font-semibold font-mono text-xs">
+                  {orderData.paystackReference}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Delivery Method
+                  Payment Status
                 </span>
-                <span className="font-semibold capitalize">
-                  {orderData.deliveryMethod === "pickup"
-                    ? "Shop Pickup"
-                    : "Delivery"}
+                <span className="font-semibold text-green-600 dark:text-green-400 capitalize">
+                  {orderData.status}
                 </span>
               </div>
-              {orderData.paymentReference && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Payment Reference
-                  </span>
-                  <span className="font-semibold font-mono text-xs">
-                    {orderData.paymentReference}
-                  </span>
-                </div>
-              )}
-              {orderData.paymentStatus && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Payment Status
-                  </span>
-                  <span className="font-semibold text-green-600 dark:text-green-400 capitalize">
-                    {orderData.paymentStatus}
-                  </span>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -129,7 +151,7 @@ function OrderConfirmation() {
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
                     Name
                   </p>
-                  <p className="font-medium">{orderData.name}</p>
+                  <p className="font-medium">{orderData.customer.name}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -138,44 +160,47 @@ function OrderConfirmation() {
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
                     Phone
                   </p>
-                  <p className="font-medium">{orderData.phone}</p>
+                  <p className="font-medium">{orderData.customer.phone}</p>
                 </div>
               </div>
-              {orderData.email && (
-                <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-neutral-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                      Email
-                    </p>
-                    <p className="font-medium">{orderData.email}</p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-neutral-500 mt-0.5" />
+                <div>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    Email
+                  </p>
+                  <p className="font-medium">{orderData.customer.email}</p>
                 </div>
-              )}
-              {orderData.deliveryMethod === "delivery" && orderData.address && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-neutral-500 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                      Delivery Address
-                    </p>
-                    <p className="font-medium">{orderData.address}</p>
-                    {orderData.country && (
+              </div>
+              {orderData.metadata?.deliveryMethod === "delivery" &&
+                orderData.metadata?.deliveryAddress && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-neutral-500 mt-0.5" />
+                    <div>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        {orderData.country}
+                        Delivery Address
                       </p>
-                    )}
+                      <p className="font-medium">
+                        {orderData.metadata.deliveryAddress}
+                      </p>
+                      {orderData.metadata.country && (
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                          {orderData.metadata.country}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-              {orderData.specialInstructions && (
+                )}
+              {orderData.metadata?.specialInstructions && (
                 <div className="flex items-start gap-3">
                   <FileText className="w-5 h-5 text-neutral-500 mt-0.5" />
                   <div>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">
                       Special Instructions
                     </p>
-                    <p className="font-medium">{orderData.specialInstructions}</p>
+                    <p className="font-medium">
+                      {orderData.metadata.specialInstructions}
+                    </p>
                   </div>
                 </div>
               )}
@@ -189,26 +214,29 @@ function OrderConfirmation() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {orderData.items.map((item) => (
+                {orderData.items.map((item, index) => (
                   <div
-                    key={item.id}
+                    key={item.productId || index}
                     className="flex justify-between items-center pb-3 border-b last:border-b-0 last:pb-0"
                   >
                     <div>
                       <p className="font-medium">{item.name}</p>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        Quantity: {item.quantity}
+                        Quantity: {item.quantity} × {orderData.currency}
+                        {item.price.toFixed(2)}
                       </p>
                     </div>
                     <p className="font-semibold">
-                      ₵{(item.price * item.quantity).toFixed(2)}
+                      {orderData.currency}
+                      {(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}
                 <div className="flex justify-between items-center pt-3 border-t-2">
                   <p className="font-bold text-lg">Total</p>
                   <p className="font-bold text-lg">
-                    ₵{orderData.totalPrice.toFixed(2)}
+                    {orderData.currency}
+                    {orderData.totalAmount.toFixed(2)}
                   </p>
                 </div>
               </div>

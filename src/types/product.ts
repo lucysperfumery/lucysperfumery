@@ -1,12 +1,16 @@
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
-  slug: string;
+  slug?: string; // Generated on frontend for routing
   price: number;
   brand: string;
   category: string;
   image: string;
   description: string;
+  stock: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';

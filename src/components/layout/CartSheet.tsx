@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCartStore } from "@/store/cartStore";
@@ -19,11 +20,12 @@ interface CartSheetProps {
 export default function CartSheet({ children }: CartSheetProps) {
   const { items, updateQuantity, removeItem, getTotalPrice, clearCart } =
     useCartStore();
+  const [open, setOpen] = useState(false);
 
   const totalPrice = getTotalPrice();
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg flex flex-col px-4">
         <SheetHeader>
@@ -32,7 +34,7 @@ export default function CartSheet({ children }: CartSheetProps) {
               <ShoppingCart className="w-5 h-5" />
               Shopping Cart
               {items.length > 0 && (
-                <Badge variant="secondary">{items.length}</Badge>
+                <Badge variant="default">{items.length}</Badge>
               )}
             </SheetTitle>
             {items.length > 0 && (
@@ -58,11 +60,11 @@ export default function CartSheet({ children }: CartSheetProps) {
             <div className="space-y-4">
               {items.map((item) => (
                 <div
-                  key={item.id}
+                  key={item._id}
                   className="flex gap-4 p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg"
                 >
                   {/* Product Image */}
-                  <div className="w-20 h-20 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex-shrink-0">
+                  <div className="w-20 h-20 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -89,7 +91,7 @@ export default function CartSheet({ children }: CartSheetProps) {
                         size="sm"
                         className="h-7 w-7 p-0"
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
+                          updateQuantity(item._id, item.quantity - 1)
                         }
                       >
                         <Minus className="w-3 h-3" />
@@ -102,7 +104,7 @@ export default function CartSheet({ children }: CartSheetProps) {
                         size="sm"
                         className="h-7 w-7 p-0"
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
+                          updateQuantity(item._id, item.quantity + 1)
                         }
                       >
                         <Plus className="w-3 h-3" />
@@ -111,7 +113,7 @@ export default function CartSheet({ children }: CartSheetProps) {
                         variant="ghost"
                         size="sm"
                         className="ml-auto text-destructive hover:text-destructive h-7 px-2"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item._id)}
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -130,7 +132,7 @@ export default function CartSheet({ children }: CartSheetProps) {
               <span>Total:</span>
               <span className="text-primary">${totalPrice.toFixed(2)}</span>
             </div>
-            <Link to="/checkout">
+            <Link to="/checkout" onClick={() => setOpen(false)}>
               <Button className="w-full" size="lg">
                 Proceed to Checkout
               </Button>

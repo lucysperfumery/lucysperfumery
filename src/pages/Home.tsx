@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
-import { featuredProducts } from "@/lib/mockData";
 import ProductCard from "@/components/products/ProductCard";
 import Autoplay from "embla-carousel-autoplay";
 import { ShoppingCart } from "lucide-react";
+import productService from "@/services/productService";
+import type { Product } from "@/types/product";
+import { toast } from "sonner";
 
 // Import carousel images
 const carouselImages = [
@@ -19,6 +22,39 @@ const carouselImages = [
 ];
 
 function HomePage() {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await productService.getProducts({
+          page: 1,
+          limit: 8,
+        });
+        console.log("Featured Products Response:", response.data);
+
+        // Add slug for routing
+        const productsWithSlug = response.data?.map((product) => ({
+          ...product,
+          slug: product.name.toLowerCase().replace(/\s+/g, "-"),
+        }));
+
+        setFeaturedProducts(productsWithSlug);
+      } catch (error) {
+        toast.error("Error loading products", {
+          description:
+            error instanceof Error ? error.message : "Failed to fetch products",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
+
   return (
     <main className="w-full flex flex-col dark:bg-gray-900 font-[Inter]">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
@@ -85,9 +121,23 @@ function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            {loading ? (
+              <div className="col-span-full text-center py-12">
+                <p className="text-neutral-600 dark:text-neutral-400">
+                  Loading featured products...
+                </p>
+              </div>
+            ) : featuredProducts?.length > 0 ? (
+              featuredProducts?.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-neutral-600 dark:text-neutral-400">
+                  No featured products available
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="text-center mt-8 sm:mt-10">

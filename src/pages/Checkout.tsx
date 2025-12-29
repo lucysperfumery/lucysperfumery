@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,19 +18,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ShoppingCart, Trash2, Loader2 } from "lucide-react";
-import {
-  initializePayment,
-  convertToKobo,
-  type PaystackResponse,
-} from "@/lib/paystack";
+import { ShoppingCart, Trash2 } from "lucide-react";
+import { PaystackButton } from "react-paystack";
+import { PAYSTACK_PUBLIC_KEY, convertToPesewas } from "@/lib/paystack";
+import orderService from "@/services/orderService";
 
 // Form schema with conditional validation
 const checkoutSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     phone: z.string().min(5, "Phone number is required"),
-    email: z.string().email("Invalid email address").min(1, "Email is required for payment"),
+    email: z
+      .string()
+      .email("Invalid email address")
+      .min(1, "Email is required for payment"),
     deliveryMethod: z.enum(["pickup", "delivery"]),
     address: z.string().optional(),
     country: z.string().optional(),
@@ -68,6 +69,11 @@ function Checkout() {
   const { items, getTotalPrice, clearCart, removeItem, updateQuantity } =
     useCartStore();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentReference, setPaymentReference] = useState<string>("");
+  const [checkoutData, setCheckoutData] = useState<CheckoutFormValues | null>(
+    null
+  );
+  const paystackButtonRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -87,102 +93,133 @@ function Checkout() {
   // Redirect if cart is empty
   useEffect(() => {
     if (items.length === 0) {
-      toast.error("Your cart is empty");
-      navigate("/products");
+      navigate("/");
     }
   }, [items.length, navigate]);
 
-  const onSubmit = (data: CheckoutFormValues) => {
-    setIsProcessingPayment(true);
+  // Auto-trigger PaystackButton when checkout data is ready
+  // useEffect(() => {
+  //   if (checkoutData && paymentReference && paystackButtonRef.current) {
+  //     // Small delay to ensure button is rendered and ready
+  //     const timer = setTimeout(() => {
+  //       const button = paystackButtonRef.current?.querySelector('button');
+  //       button?.click();
+  //     }, 100);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [checkoutData, paymentReference]);
 
-    // Calculate total amount in kobo
-    const totalAmount = convertToKobo(getTotalPrice());
+  const onSubmit = async (data: CheckoutFormValues) => {
+    // Generate unique payment reference
+    const reference = `LP${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-    // Prepare payment data
-    const paymentData = {
-      email: data.email,
-      amount: totalAmount,
-      firstName: data.name,
-      lastName: "",
-      phone: data.phone,
-      metadata: {
-        deliveryMethod: data.deliveryMethod,
-        address: data.deliveryMethod === "delivery" ? data.address || "" : "",
-        country: data.deliveryMethod === "delivery" ? data.country || "" : "",
-        cartItems: JSON.stringify(
-          items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          }))
-        ),
-      },
-    };
+    // Store checkout data and reference for use after payment
+    setCheckoutData(data);
+    setPaymentReference(reference);
 
-    // Initialize Paystack payment
-    initializePayment(
-      paymentData,
-      (response: PaystackResponse) => {
-        // Payment successful
-        handlePaymentSuccess(response, data);
-      },
-      () => {
-        // Payment cancelled or closed
-        setIsProcessingPayment(false);
-        toast.error("Payment cancelled", {
-          description: "You can try again when ready",
-        });
-      }
-    );
+    // Don't set processing state here - let PaystackButton handle it
   };
 
-  const handlePaymentSuccess = (
-    response: PaystackResponse,
-    formData: CheckoutFormValues
-  ) => {
-    // Generate order number
-    const orderNumber = `LP${Date.now().toString().slice(-8)}`;
+  const handlePaymentSuccess = async (reference: any) => {
+    if (!checkoutData) return;
 
-    // Prepare order data
-    const orderData = {
-      orderNumber,
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email,
-      deliveryMethod: formData.deliveryMethod,
-      address:
-        formData.deliveryMethod === "delivery" ? formData.address : undefined,
-      country:
-        formData.deliveryMethod === "delivery" ? formData.country : undefined,
-      specialInstructions: formData.specialInstructions || undefined,
-      items: items.map((item) => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      totalPrice: getTotalPrice(),
-      orderDate: new Date().toISOString(),
-      paymentReference: response.reference,
-      paymentStatus: "paid",
-    };
+    setIsProcessingPayment(true);
 
-    // Save order to localStorage
-    localStorage.setItem("lastOrder", JSON.stringify(orderData));
+    try {
+      // Create order on backend with payment reference
+      const orderPayload = {
+        customer: {
+          name: checkoutData.name,
+          email: checkoutData.email,
+          phone: checkoutData.phone,
+        },
+        items: items.map((item) => ({
+          productId: item._id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        totalAmount: getTotalPrice(),
+        paystackReference: reference.reference || paymentReference,
+        metadata: {
+          deliveryMethod: checkoutData.deliveryMethod,
+          deliveryAddress:
+            checkoutData.deliveryMethod === "delivery"
+              ? checkoutData.address
+              : undefined,
+          country:
+            checkoutData.deliveryMethod === "delivery"
+              ? checkoutData.country
+              : undefined,
+          specialInstructions: checkoutData.specialInstructions,
+        },
+      };
 
-    // Clear cart
-    clearCart();
+      const createOrderResponse = await orderService.createOrder(orderPayload);
 
-    // Show success toast
-    toast.success("Payment successful!", {
-      description: `Order #${orderNumber} has been placed`,
-    });
+      // Save order to localStorage for confirmation page
+      localStorage.setItem(
+        "lastOrder",
+        JSON.stringify(createOrderResponse.order)
+      );
 
-    // Reset processing state
+      // Clear cart
+      clearCart();
+
+      // Show success toast
+      toast.success("Payment successful!", {
+        description: `Order #${createOrderResponse.order._id.slice(
+          -8
+        )} has been placed`,
+      });
+
+      // Reset processing state
+      setIsProcessingPayment(false);
+
+      // Redirect to order confirmation
+      navigate("/order-confirmation");
+    } catch (error) {
+      setIsProcessingPayment(false);
+      toast.error("Order creation failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please contact support with your payment reference",
+      });
+    }
+  };
+
+  const handlePaymentClose = () => {
     setIsProcessingPayment(false);
+    toast.error("Payment cancelled", {
+      description: "You can try again when ready",
+    });
+  };
 
-    // Redirect to order confirmation
-    navigate("/order-confirmation");
+  // Paystack component props
+  const paystackProps = {
+    email: checkoutData?.email || "",
+    amount: convertToPesewas(getTotalPrice()),
+    publicKey: PAYSTACK_PUBLIC_KEY,
+    text: isProcessingPayment ? "Processing..." : "Proceed to Payment",
+    reference: paymentReference,
+    currency: "GHS",
+    metadata: {
+      custom_fields: [
+        {
+          display_name: "Customer Name",
+          variable_name: "customer_name",
+          value: checkoutData?.name || "",
+        },
+        {
+          display_name: "Phone Number",
+          variable_name: "phone_number",
+          value: checkoutData?.phone || "",
+        },
+      ],
+    },
+    onSuccess: handlePaymentSuccess,
+    onClose: handlePaymentClose,
   };
 
   if (items.length === 0) {
@@ -233,7 +270,10 @@ function Checkout() {
                                 </label>
                               </div>
                               <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-900">
-                                <RadioGroupItem value="delivery" id="delivery" />
+                                <RadioGroupItem
+                                  value="delivery"
+                                  id="delivery"
+                                />
                                 <label
                                   htmlFor="delivery"
                                   className="flex-1 cursor-pointer"
@@ -318,6 +358,10 @@ function Checkout() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Delivery Address *</FormLabel>
+                              <p className="text-xs text-muted-foreground">
+                                Please provide your full delivery address with
+                                as much detail as possible.
+                              </p>
                               <FormControl>
                                 <Textarea
                                   placeholder="Enter your full delivery address"
@@ -372,21 +416,23 @@ function Checkout() {
                     />
 
                     {/* Submit Button - Mobile */}
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full lg:hidden"
-                      disabled={isProcessingPayment}
-                    >
-                      {isProcessingPayment ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Proceed to Payment"
-                      )}
-                    </Button>
+                    {!checkoutData ? (
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full lg:hidden"
+                        disabled={isProcessingPayment}
+                      >
+                        Continue to Payment
+                      </Button>
+                    ) : (
+                      <div ref={paystackButtonRef}>
+                        <PaystackButton
+                          {...paystackProps}
+                          className="w-full lg:hidden px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 disabled:opacity-50"
+                        />
+                      </div>
+                    )}
                   </form>
                 </Form>
               </CardContent>
@@ -407,7 +453,7 @@ function Checkout() {
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
                   {items.map((item) => (
                     <div
-                      key={item.id}
+                      key={item._id}
                       className="flex gap-3 pb-3 border-b last:border-b-0"
                     >
                       <img
@@ -429,7 +475,7 @@ function Checkout() {
                             className="h-6 w-6 p-0"
                             onClick={() =>
                               updateQuantity(
-                                item.id,
+                                item._id,
                                 Math.max(1, item.quantity - 1)
                               )
                             }
@@ -444,7 +490,7 @@ function Checkout() {
                             size="sm"
                             className="h-6 w-6 p-0"
                             onClick={() =>
-                              updateQuantity(item.id, item.quantity + 1)
+                              updateQuantity(item._id, item.quantity + 1)
                             }
                           >
                             +
@@ -453,7 +499,7 @@ function Checkout() {
                             variant="ghost"
                             size="sm"
                             className="h-6 w-6 p-0 ml-auto"
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeItem(item._id)}
                           >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
@@ -485,21 +531,21 @@ function Checkout() {
                 </div>
 
                 {/* Submit Button - Desktop */}
-                <Button
-                  onClick={form.handleSubmit(onSubmit)}
-                  size="lg"
-                  className="w-full hidden lg:block"
-                  disabled={isProcessingPayment}
-                >
-                  {isProcessingPayment ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Proceed to Payment"
-                  )}
-                </Button>
+                {!checkoutData ? (
+                  <Button
+                    onClick={form.handleSubmit(onSubmit)}
+                    size="lg"
+                    className="w-full hidden lg:block"
+                    disabled={isProcessingPayment}
+                  >
+                    Continue to Payment
+                  </Button>
+                ) : (
+                  <PaystackButton
+                    {...paystackProps}
+                    className="w-full hidden lg:block px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 disabled:opacity-50"
+                  />
+                )}
               </CardContent>
             </Card>
           </div>

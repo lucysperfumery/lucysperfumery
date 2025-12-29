@@ -1,18 +1,22 @@
-import PaystackPop from "@paystack/inline-js";
-
 // Paystack configuration
 export const PAYSTACK_PUBLIC_KEY =
+  import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ||
   "pk_test_9f84bcbcafb055b3631126963345a60c95e53c73";
 
-export interface PaystackPaymentData {
+export interface PaystackConfig {
+  reference: string;
   email: string;
-  amount: number; // Amount in kobo (GHS 100 = 10000 kobo)
-  firstName: string;
-  lastName: string;
-  phone?: string;
+  amount: number; // Amount in pesewas (GHS 100 = 10000 pesewas)
+  publicKey: string;
+  currency?: string;
   metadata?: {
     [key: string]: string | number;
   };
+  channels?: string[];
+  label?: string;
+  firstname?: string;
+  lastname?: string;
+  phone?: string;
 }
 
 export interface PaystackResponse {
@@ -25,41 +29,36 @@ export interface PaystackResponse {
 }
 
 /**
- * Initialize Paystack payment popup
- * @param data Payment data including email, amount, and customer details
- * @param onSuccess Callback function when payment is successful
- * @param onClose Callback function when popup is closed
+ * Create Paystack configuration object for usePaystackPayment hook
+ * @param email Customer email
+ * @param amount Amount in pesewas
+ * @param reference Payment reference from backend
+ * @param metadata Additional metadata
+ * @param firstName Customer first name
+ * @param lastName Customer last name
+ * @param phone Customer phone number
+ * @returns Paystack config object
  */
-export const initializePayment = (
-  data: PaystackPaymentData,
-  onSuccess: (response: PaystackResponse) => void,
-  onClose: () => void
-) => {
-  const paystack = new PaystackPop();
-
-  // Split name into first and last name
-  const nameParts = data.firstName.split(" ");
-  const firstName = nameParts[0] || data.firstName;
-  const lastName = nameParts.slice(1).join(" ") || data.lastName || "";
-
-  paystack.newTransaction({
-    key: PAYSTACK_PUBLIC_KEY,
-    email: data.email,
-    amount: data.amount, // Amount in kobo
-    currency: "GHS", // Ghana Cedis
-    ref: `LP${Date.now()}`, // Unique reference
+export const createPaystackConfig = (
+  email: string,
+  amount: number,
+  reference: string,
+  metadata?: { [key: string]: string | number },
+  firstName?: string,
+  lastName?: string,
+  phone?: string
+): PaystackConfig => {
+  return {
+    reference,
+    email,
+    amount,
+    publicKey: PAYSTACK_PUBLIC_KEY,
+    currency: "GHS",
+    metadata,
     firstname: firstName,
     lastname: lastName,
-    phone: data.phone,
-    metadata: data.metadata,
-    onSuccess: (transaction) => {
-      onSuccess(transaction as PaystackResponse);
-      // TODO send request to sever to verify payment and store order
-    },
-    onCancel: () => {
-      onClose();
-    },
-  });
+    phone,
+  };
 };
 
 /**
@@ -67,6 +66,6 @@ export const initializePayment = (
  * @param amount Amount in GHS
  * @returns Amount in kobo (pesewas)
  */
-export const convertToKobo = (amount: number): number => {
+export const convertToPesewas = (amount: number): number => {
   return Math.round(amount * 100);
 };

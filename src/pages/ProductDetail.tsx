@@ -1,32 +1,102 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, ShoppingCart, Minus, Plus } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import EmptyState from "@/components/products/EmptyState";
-import { mockProducts } from "@/lib/mockData";
+import productService from "@/services/productService";
+import type { Product } from "@/types/product";
+import { toast } from "sonner";
 
 export default function ProductDetail() {
   const { productSlug } = useParams<{ productSlug: string }>();
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
 
-  // Use mock products data
-  const allProducts = mockProducts;
+  // Fetch all products and find by slug
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await productService.getProducts({
+          page: 1,
+          limit: 100,
+        });
 
-  // Find product by slug
-  const product = allProducts.find((p) => p.slug === productSlug);
+        // Find product by slug
+        const foundProduct = response.products.find(
+          (p) => p.name.toLowerCase().replace(/\s+/g, "-") === productSlug
+        );
+
+        if (foundProduct) {
+          setProduct({
+            ...foundProduct,
+            slug: foundProduct.name.toLowerCase().replace(/\s+/g, "-"),
+          });
+        }
+      } catch (error) {
+        toast.error("Error loading product", {
+          description:
+            error instanceof Error ? error.message : "Failed to fetch product",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productSlug]);
 
   const handleAddToCart = () => {
     if (product) {
-      addItem(product, quantity);
-      setQuantity(1);
+      const result = addItem(product, quantity);
+      if (result.success) {
+        toast.success("Added to cart", {
+          description: `${product.name} (${quantity}) added to your cart`,
+        });
+        setQuantity(1);
+      } else {
+        toast.error("Cannot add to cart", {
+          description: result.message || "Failed to add item to cart",
+        });
+      }
     }
   };
 
-  const incrementQuantity = () => setQuantity((q) => q + 1);
+  const incrementQuantity = () => {
+    if (product && quantity < product.stock) {
+      setQuantity((q) => q + 1);
+    } else if (product) {
+      toast.error("Stock limit reached", {
+        description: `Only ${product.stock} items available`,
+      });
+    }
+  };
+
   const decrementQuantity = () => setQuantity((q) => Math.max(1, q - 1));
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-neutral-950">
+        <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8">
+          <Link to="/products">
+            <Button variant="ghost" className="mb-6">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Products
+            </Button>
+          </Link>
+          <div className="text-center py-12">
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Loading product...
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -127,6 +197,20 @@ export default function ProductDetail() {
                   </dt>
                   <dd className="font-medium">{product.category}</dd>
                 </div>
+                <div className="flex justify-between">
+                  <dt className="text-neutral-600 dark:text-neutral-400">
+                    Stock
+                  </dt>
+                  <dd
+                    className={`font-medium ${
+                      product.stock <= 5 ? "text-red-600" : "text-green-600"
+                    }`}
+                  >
+                    {product.stock > 0
+                      ? `${product.stock} available`
+                      : "Out of stock"}
+                  </dd>
+                </div>
               </dl>
             </Card>
 
@@ -164,9 +248,12 @@ export default function ProductDetail() {
                 size="lg"
                 className="w-full sm:w-auto sm:px-12"
                 onClick={handleAddToCart}
+                disabled={product.stock === 0 || !product.isActive}
               >
                 <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                Add to Cart - ${(product.price * quantity).toFixed(2)}
+                {product.stock === 0 || !product.isActive
+                  ? "Out of Stock"
+                  : `Add to Cart - GH₵${(product.price * quantity).toFixed(2)}`}
               </Button>
             </div>
           </div>

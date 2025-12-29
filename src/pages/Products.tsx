@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import type { Product, ProductFilters as FilterType } from "@/types/product";
 import ProductGrid from "@/components/products/ProductGrid";
 import ProductFilters from "@/components/products/ProductFilters";
-import { mockProducts } from "@/lib/mockData";
+import productService from "@/services/productService";
+import { toast } from "sonner";
 
 export default function Products() {
   const { categoryName, brandName } = useParams<{
@@ -11,8 +12,8 @@ export default function Products() {
     brandName?: string;
   }>();
 
-  // Use mock products data
-  const allProducts: Product[] = mockProducts;
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState<FilterType>({
     categories: categoryName ? [decodeURIComponent(categoryName)] : [],
@@ -20,6 +21,36 @@ export default function Products() {
     search: "",
     sortBy: "name-asc",
   });
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await productService.getProducts({
+          page: 1,
+          limit: 100,
+        });
+
+        // Add slug for routing
+        const productsWithSlug = (response.data || []).map((product) => ({
+          ...product,
+          slug: product.name.toLowerCase().replace(/\s+/g, "-"),
+        }));
+
+        setAllProducts(productsWithSlug);
+      } catch (error) {
+        toast.error("Error loading products", {
+          description:
+            error instanceof Error ? error.message : "Failed to fetch products",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -95,11 +126,19 @@ export default function Products() {
 
         {/* Products Grid */}
         <div className="mt-6 sm:mt-8">
-          <ProductGrid
-            products={filteredProducts}
-            emptyTitle="No products available"
-            emptyDescription="Check back soon for our curated collection of premium perfumes."
-          />
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-neutral-600 dark:text-neutral-400">
+                Loading products...
+              </p>
+            </div>
+          ) : (
+            <ProductGrid
+              products={filteredProducts}
+              emptyTitle="No products available"
+              emptyDescription="Check back soon for our curated collection of premium perfumes."
+            />
+          )}
         </div>
       </main>
     </div>
