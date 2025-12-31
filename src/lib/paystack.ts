@@ -1,8 +1,5 @@
 // Paystack configuration
-export const PAYSTACK_PUBLIC_KEY =
-  import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ||
-  "pk_test_9f84bcbcafb055b3631126963345a60c95e53c73";
-
+export const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 export interface PaystackConfig {
   reference: string;
   email: string;

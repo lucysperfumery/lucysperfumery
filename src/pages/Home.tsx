@@ -69,8 +69,9 @@ function HomePage() {
               <p className="text-2xl font-semibold">Lucy's Perfumery</p>
             </div>
             <p className="font-serif text-sm sm:text-base mb-6 sm:mb-8 px-4">
-              Shop perfumes, diffusers, body splashes & more. Choose from a
-              variety of brands and categories
+              Shop your original perfumes, diffusers, body splashes & more.
+              <br />
+              Choose from our variety of brands and categories.
             </p>
 
             {/* Carousel */}
