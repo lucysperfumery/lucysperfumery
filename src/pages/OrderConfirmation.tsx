@@ -222,12 +222,12 @@ function OrderConfirmation() {
                     <div>
                       <p className="font-medium">{item.name}</p>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        Quantity: {item.quantity} × {orderData.currency}
+                        Quantity: {item.quantity} × GH₵
                         {item.price.toFixed(2)}
                       </p>
                     </div>
                     <p className="font-semibold">
-                      {orderData.currency}
+                      GH₵
                       {(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
@@ -235,7 +235,7 @@ function OrderConfirmation() {
                 <div className="flex justify-between items-center pt-3 border-t-2">
                   <p className="font-bold text-lg">Total</p>
                   <p className="font-bold text-lg">
-                    {orderData.currency}
+                    GH₵
                     {orderData.totalAmount.toFixed(2)}
                   </p>
                 </div>

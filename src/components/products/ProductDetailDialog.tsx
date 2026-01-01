@@ -80,7 +80,7 @@ export default function ProductDetailDialog({
               </div>
               <h2 className="text-xl font-bold mb-1">{product.name}</h2>
               <p className="text-xl font-semibold text-primary mb-4">
-                ${product.price.toFixed(2)}
+                GH₵{product.price.toFixed(2)}
               </p>
             </div>
 
@@ -121,7 +121,7 @@ export default function ProductDetailDialog({
             {/* Add to Cart Button */}
             <Button className="w-full" size="lg" onClick={handleAddToCart}>
               <ShoppingCart className="w-4 h-4 mr-2" />
-              Add to Cart - ${(product.price * quantity).toFixed(2)}
+              Add to Cart - GH₵{(product.price * quantity).toFixed(2)}
             </Button>
           </div>
         </div>

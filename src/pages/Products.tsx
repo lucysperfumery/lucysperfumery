@@ -5,6 +5,7 @@ import ProductGrid from "@/components/products/ProductGrid";
 import ProductFilters from "@/components/products/ProductFilters";
 import productService from "@/services/productService";
 import { toast } from "sonner";
+import MobileTopNavbar from "@/components/layout/MobileTopNavbar";
 
 export default function Products() {
   const { categoryName, brandName } = useParams<{
@@ -110,9 +111,11 @@ export default function Products() {
   }, [categoryName, brandName]);
 
   return (
-    <div className="bg-white dark:bg-neutral-950">
-      {/* Main Content */}
-      <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8">
+    <>
+      <MobileTopNavbar />
+      <div className="bg-white dark:bg-neutral-950">
+        {/* Main Content */}
+        <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8 pt-20 md:pt-6">
         <div className="mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-2">{pageTitle}</h2>
           <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400">
@@ -142,5 +145,6 @@ export default function Products() {
         </div>
       </main>
     </div>
+    </>
   );
 }

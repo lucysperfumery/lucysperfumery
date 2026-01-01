@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 
-// WhatsApp business number (Ghana format: +233XXXXXXXXX)
-// TODO: Replace with actual business WhatsApp number
-const WHATSAPP_NUMBER = "233XXXXXXXXX";
+const WHATSAPP_NUMBER = "+233555271090";
 const WHATSAPP_MESSAGE = "Hello Lucy's Perfumery, ";
 
 export default function WhatsAppButton() {
@@ -14,7 +12,9 @@ export default function WhatsAppButton() {
     setIsAnimated(true);
   }, []);
 
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    WHATSAPP_MESSAGE
+  )}`;
 
   return (
     <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-40">

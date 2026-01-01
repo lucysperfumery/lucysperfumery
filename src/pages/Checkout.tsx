@@ -466,7 +466,7 @@ function Checkout() {
                           {item.name}
                         </p>
                         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                          ₵{item.price.toFixed(2)}
+                          GH₵{item.price.toFixed(2)}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <Button
@@ -507,7 +507,7 @@ function Checkout() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-sm">
-                          ₵{(item.price * item.quantity).toFixed(2)}
+                          GH₵{(item.price * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -521,12 +521,12 @@ function Checkout() {
                       Subtotal
                     </span>
                     <span className="font-semibold">
-                      ₵{getTotalPrice().toFixed(2)}
+                      GH₵{getTotalPrice().toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-lg font-bold">
                     <span>Total</span>
-                    <span>₵{getTotalPrice().toFixed(2)}</span>
+                    <span>GH₵{getTotalPrice().toFixed(2)}</span>
                   </div>
                 </div>
 

@@ -81,7 +81,7 @@ export default function CartSheet({ children }: CartSheetProps) {
                       {item.brand}
                     </p>
                     <p className="font-bold text-primary">
-                      ${item.price.toFixed(2)}
+                      GH₵{item.price.toFixed(2)}
                     </p>
 
                     {/* Quantity Controls */}
@@ -130,7 +130,7 @@ export default function CartSheet({ children }: CartSheetProps) {
           <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4 space-y-4 mb-8">
             <div className="flex justify-between items-center text-lg font-bold">
               <span>Total:</span>
-              <span className="text-primary">${totalPrice.toFixed(2)}</span>
+              <span className="text-primary">GH₵{totalPrice.toFixed(2)}</span>
             </div>
             <Link to="/checkout" onClick={() => setOpen(false)}>
               <Button className="w-full" size="lg">

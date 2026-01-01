@@ -48,11 +48,11 @@ export default function ProductFilters({
     filters.search;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Search and Sort Bar */}
       <div className="flex flex-col items-center sm:flex-row gap-4">
         {/* Search */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
           <input
             type="text"
@@ -65,37 +65,39 @@ export default function ProductFilters({
           />
         </div>
 
-        {/* Sort */}
-        <select
-          value={filters.sortBy}
-          onChange={(e) =>
-            onFiltersChange({
-              ...filters,
-              sortBy: e.target.value as SortOption,
-            })
-          }
-          className="px-4 py-2.5 border border-neutral-200 dark:border-neutral-800 rounded-md bg-white dark:bg-neutral-950 focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="name-asc">Name (A-Z)</option>
-          <option value="name-desc">Name (Z-A)</option>
-          <option value="price-asc">Price (Low to High)</option>
-          <option value="price-desc">Price (High to Low)</option>
-        </select>
+        <div className="flex items-center justify-between gap-2">
+          {/* Sort */}
+          <select
+            value={filters.sortBy}
+            onChange={(e) =>
+              onFiltersChange({
+                ...filters,
+                sortBy: e.target.value as SortOption,
+              })
+            }
+            className="px-4 py-2.5 border border-neutral-200 dark:border-neutral-800 rounded-md bg-white dark:bg-neutral-950 focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="price-asc">Price (Low to High)</option>
+            <option value="price-desc">Price (High to Low)</option>
+          </select>
 
-        {/* Filter Toggle Button */}
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="sm:w-auto px-4 py-5"
-        >
-          <SlidersHorizontal className="w-4 h-4 mr-2" />
-          Filters
-          {hasActiveFilters && (
-            <span className="ml-2 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
-              {filters.categories.length + filters.brands.length}
-            </span>
-          )}
-        </Button>
+          {/* Filter Toggle Button */}
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="sm:w-auto px-4 py-5 "
+          >
+            <SlidersHorizontal className="w-4 h-4 mr-2" />
+            Filters
+            {hasActiveFilters && (
+              <span className="ml-2 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                {filters.categories.length + filters.brands.length}
+              </span>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Filters Panel */}

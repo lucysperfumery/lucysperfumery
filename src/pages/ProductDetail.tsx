@@ -165,7 +165,7 @@ export default function ProductDetail() {
                 {product.name}
               </h1>
               <p className="text-3xl sm:text-4xl font-bold text-primary mb-4 sm:mb-6">
-                ${product.price.toFixed(2)}
+                GH₵{product.price.toFixed(2)}
               </p>
             </div>
 
