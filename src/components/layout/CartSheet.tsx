@@ -77,9 +77,6 @@ export default function CartSheet({ children }: CartSheetProps) {
                     <h4 className="font-semibold text-sm line-clamp-1 mb-1">
                       {item.name}
                     </h4>
-                    <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-2">
-                      {item.brand}
-                    </p>
                     <p className="font-bold text-primary">
                       GH₵{item.price.toFixed(2)}
                     </p>

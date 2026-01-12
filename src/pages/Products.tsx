@@ -8,9 +8,8 @@ import { toast } from "sonner";
 import MobileTopNavbar from "@/components/layout/MobileTopNavbar";
 
 export default function Products() {
-  const { categoryName, brandName } = useParams<{
+  const { categoryName } = useParams<{
     categoryName?: string;
-    brandName?: string;
   }>();
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -18,7 +17,6 @@ export default function Products() {
 
   const [filters, setFilters] = useState<FilterType>({
     categories: categoryName ? [decodeURIComponent(categoryName)] : [],
-    brands: brandName ? [decodeURIComponent(brandName)] : [],
     search: "",
     sortBy: "name-asc",
   });
@@ -64,18 +62,12 @@ export default function Products() {
       );
     }
 
-    // Filter by brands
-    if (filters.brands.length > 0) {
-      filtered = filtered.filter((p) => filters.brands.includes(p.brand));
-    }
-
     // Filter by search
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(
         (p) =>
           p.name.toLowerCase().includes(searchLower) ||
-          p.brand.toLowerCase().includes(searchLower) ||
           p.category.toLowerCase().includes(searchLower)
       );
     }
@@ -104,11 +96,8 @@ export default function Products() {
     if (categoryName) {
       return `${decodeURIComponent(categoryName)} Products`;
     }
-    if (brandName) {
-      return `${decodeURIComponent(brandName)} Products`;
-    }
     return "All Products";
-  }, [categoryName, brandName]);
+  }, [categoryName]);
 
   return (
     <>

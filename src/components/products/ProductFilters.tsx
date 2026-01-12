@@ -4,7 +4,7 @@ import {
   type ProductFilters as FilterType,
   type SortOption,
 } from "@/types/product";
-import { categories, brands } from "@/lib/consts";
+import { categories } from "@/lib/consts";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -26,17 +26,9 @@ export default function ProductFilters({
     onFiltersChange({ ...filters, categories: newCategories });
   };
 
-  const toggleBrand = (brand: string) => {
-    const newBrands = filters.brands.includes(brand)
-      ? filters.brands.filter((b) => b !== brand)
-      : [...filters.brands, brand];
-    onFiltersChange({ ...filters, brands: newBrands });
-  };
-
   const clearFilters = () => {
     onFiltersChange({
       categories: [],
-      brands: [],
       search: "",
       sortBy: "name-asc",
     });
@@ -44,7 +36,6 @@ export default function ProductFilters({
 
   const hasActiveFilters =
     filters.categories.length > 0 ||
-    filters.brands.length > 0 ||
     filters.search;
 
   return (
@@ -93,7 +84,7 @@ export default function ProductFilters({
             Filters
             {hasActiveFilters && (
               <span className="ml-2 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
-                {filters.categories.length + filters.brands.length}
+                {filters.categories.length}
               </span>
             )}
           </Button>
@@ -113,7 +104,7 @@ export default function ProductFilters({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {/* Categories */}
             <div>
               <h4 className="font-medium mb-3">Categories</h4>
@@ -130,27 +121,6 @@ export default function ProductFilters({
                       className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
                     />
                     <span className="text-sm">{category}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Brands */}
-            <div>
-              <h4 className="font-medium mb-3">Brands</h4>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {brands.map((brand) => (
-                  <label
-                    key={brand}
-                    className="flex items-center space-x-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-900 p-2 rounded"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.brands.includes(brand)}
-                      onChange={() => toggleBrand(brand)}
-                      className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm">{brand}</span>
                   </label>
                 ))}
               </div>

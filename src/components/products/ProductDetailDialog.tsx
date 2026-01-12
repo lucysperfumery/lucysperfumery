@@ -61,14 +61,6 @@ export default function ProductDetailDialog({
             <div>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-2">
                 <Link
-                  to={`/products/brand/${encodeURIComponent(product.brand)}`}
-                  onClick={() => onOpenChange(false)}
-                  className="hover:text-primary transition-colors font-medium"
-                >
-                  {product.brand}
-                </Link>
-                <span>•</span>
-                <Link
                   to={`/products/category/${encodeURIComponent(
                     product.category
                   )}`}

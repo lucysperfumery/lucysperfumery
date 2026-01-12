@@ -146,13 +146,6 @@ export default function ProductDetail() {
             <div>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-2">
                 <Link
-                  to={`/products/brand/${encodeURIComponent(product.brand)}`}
-                  className="hover:text-primary transition-colors font-medium"
-                >
-                  {product.brand}
-                </Link>
-                <span>•</span>
-                <Link
                   to={`/products/category/${encodeURIComponent(
                     product.category
                   )}`}
@@ -185,12 +178,6 @@ export default function ProductDetail() {
                 Product Details
               </h3>
               <dl className="space-y-2 sm:space-y-3 text-sm sm:text-base">
-                <div className="flex justify-between">
-                  <dt className="text-neutral-600 dark:text-neutral-400">
-                    Brand
-                  </dt>
-                  <dd className="font-medium">{product.brand}</dd>
-                </div>
                 <div className="flex justify-between">
                   <dt className="text-neutral-600 dark:text-neutral-400">
                     Category
