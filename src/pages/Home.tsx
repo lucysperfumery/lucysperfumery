@@ -6,6 +6,13 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ProductCard from "@/components/products/ProductCard";
 import Autoplay from "embla-carousel-autoplay";
 import { ShoppingCart } from "lucide-react";
@@ -25,8 +32,16 @@ const carouselImages = [
 function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
+    // Check if user has visited before
+    // const hasVisited = localStorage.getItem("hasVisitedLucysPerfumery");
+    // if (!hasVisited) {
+    //   setShowWelcome(true);
+    //   localStorage.setItem("hasVisitedLucysPerfumery", "true");
+    // }
+
     const fetchFeaturedProducts = async () => {
       try {
         setLoading(true);
@@ -37,7 +52,7 @@ function HomePage() {
         console.log("Featured Products Response:", response.data);
 
         // Add slug for routing
-        const productsWithSlug = response.data?.map((product) => ({
+        const productsWithSlug = response.data?.map((product: Product) => ({
           ...product,
           slug: product.name.toLowerCase().replace(/\s+/g, "-"),
         }));
@@ -59,6 +74,34 @@ function HomePage() {
   return (
     <>
       <MobileTopNavbar />
+
+      {/* Welcome Dialog */}
+      <Dialog open={showWelcome} onOpenChange={setShowWelcome}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-center">
+              Welcome to Lucy's Perfumery! 🌷
+            </DialogTitle>
+            <DialogDescription className="text-center space-y-3 pt-4">
+              <p className="text-base">We're delighted to have you here!</p>
+              <p>
+                Shop all your original perfumes, diffusers, body splashes &
+                more. Choose from our variety of brands and categories.
+              </p>
+              <p className="font-medium text-primary">Happy shopping! 🛍️</p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={() => setShowWelcome(false)}
+              className="w-full sm:w-auto px-8"
+            >
+              Start Shopping
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <main className="w-full flex flex-col dark:bg-gray-900 font-[Inter]">
         <div className="container mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex flex-col items-center mt-2 pt-16 md:pt-0 text-center">
