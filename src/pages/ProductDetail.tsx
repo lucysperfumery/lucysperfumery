@@ -23,7 +23,7 @@ export default function ProductDetail() {
         setLoading(true);
         const response = await productService.getProducts({
           page: 1,
-          limit: 100,
+          limit: 1000,
         });
 
         // Find product by slug

@@ -47,7 +47,7 @@ function HomePage() {
         setLoading(true);
         const response = await productService.getProducts({
           page: 1,
-          limit: 8,
+          limit: 12,
         });
         console.log("Featured Products Response:", response.data);
 
