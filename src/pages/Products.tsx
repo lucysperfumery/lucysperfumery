@@ -28,7 +28,7 @@ export default function Products() {
         setLoading(true);
         const response = await productService.getProducts({
           page: 1,
-          limit: 100,
+          limit: 1000,
         });
 
         // Add slug for routing
@@ -105,35 +105,35 @@ export default function Products() {
       <div className="bg-white dark:bg-neutral-950">
         {/* Main Content */}
         <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8 pt-20 md:pt-6">
-        <div className="mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">{pageTitle}</h2>
-          <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400">
-            {filteredProducts.length}{" "}
-            {filteredProducts.length === 1 ? "product" : "products"} found
-          </p>
-        </div>
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2">{pageTitle}</h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400">
+              {filteredProducts.length}{" "}
+              {filteredProducts.length === 1 ? "product" : "products"} found
+            </p>
+          </div>
 
-        {/* Filters */}
-        <ProductFilters filters={filters} onFiltersChange={setFilters} />
+          {/* Filters */}
+          <ProductFilters filters={filters} onFiltersChange={setFilters} />
 
-        {/* Products Grid */}
-        <div className="mt-6 sm:mt-8">
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-neutral-600 dark:text-neutral-400">
-                Loading products...
-              </p>
-            </div>
-          ) : (
-            <ProductGrid
-              products={filteredProducts}
-              emptyTitle="No products available"
-              emptyDescription="Check back soon for our curated collection of premium perfumes."
-            />
-          )}
-        </div>
-      </main>
-    </div>
+          {/* Products Grid */}
+          <div className="mt-6 sm:mt-8">
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-neutral-600 dark:text-neutral-400">
+                  Loading products...
+                </p>
+              </div>
+            ) : (
+              <ProductGrid
+                products={filteredProducts}
+                emptyTitle="No products available"
+                emptyDescription="Check back soon for our curated collection of premium perfumes."
+              />
+            )}
+          </div>
+        </main>
+      </div>
     </>
   );
 }

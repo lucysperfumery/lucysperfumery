@@ -78,8 +78,13 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
         <CardContent className="px-4">
-          <p className="font-semibold text-base mb-1 hover:text-primary transition-colors text-clip overflow-hidden whitespace-nowrap">
+          <p className="font-semibold text-base hover:text-primary transition-colors text-clip overflow-hidden whitespace-nowrap">
             {product.name}
+          </p>
+          <p className="mb-4">
+            <span className="text-sm text-neutral-600 dark:text-neutral-400">
+              {product.category}
+            </span>
           </p>
           <p className="text-base font-semibold text-primary">
             GH₵{product.price.toFixed(2)}
