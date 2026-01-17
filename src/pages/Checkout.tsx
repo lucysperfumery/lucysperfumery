@@ -137,7 +137,10 @@ function Checkout() {
           productId: item._id,
           name: item.name,
           quantity: item.quantity,
-          price: item.price,
+          price: item.selectedOption
+            ? item.selectedOption.optionPrice
+            : item.price,
+          selectedOption: item.selectedOption || undefined,
         })),
         totalAmount: getTotalPrice(),
         paystackReference: reference.reference || paymentReference,
@@ -451,67 +454,79 @@ function Checkout() {
               <CardContent className="space-y-4">
                 {/* Cart Items */}
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                  {items.map((item) => (
-                    <div
-                      key={item._id}
-                      className="flex gap-3 pb-3 border-b last:border-b-0"
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {item.name}
-                        </p>
-                        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                          GH₵{item.price.toFixed(2)}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() =>
-                              updateQuantity(
-                                item._id,
-                                Math.max(1, item.quantity - 1)
-                              )
-                            }
-                          >
-                            -
-                          </Button>
-                          <span className="text-sm w-6 text-center">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() =>
-                              updateQuantity(item._id, item.quantity + 1)
-                            }
-                          >
-                            +
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 ml-auto"
-                            onClick={() => removeItem(item._id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
+                  {items.map((item) => {
+                    const itemPrice = item.selectedOption
+                      ? item.selectedOption.optionPrice
+                      : item.price;
+                    const itemId = item.cartItemId || item._id;
+
+                    return (
+                      <div
+                        key={itemId}
+                        className="flex gap-3 pb-3 border-b last:border-b-0"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
+                            {item.name}
+                          </p>
+                          {item.selectedOption && (
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                              {item.selectedOption.optionName}
+                            </p>
+                          )}
+                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                            GH₵{itemPrice.toFixed(2)}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() =>
+                                updateQuantity(
+                                  itemId,
+                                  Math.max(1, item.quantity - 1)
+                                )
+                              }
+                            >
+                              -
+                            </Button>
+                            <span className="text-sm w-6 text-center">
+                              {item.quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() =>
+                                updateQuantity(itemId, item.quantity + 1)
+                              }
+                            >
+                              +
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 ml-auto"
+                              onClick={() => removeItem(itemId)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-sm">
+                              GH₵{(itemPrice * item.quantity).toFixed(2)}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-sm">
-                          GH₵{(item.price * item.quantity).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Total */}

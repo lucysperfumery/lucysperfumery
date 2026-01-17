@@ -1,3 +1,12 @@
+export interface ProductOption {
+  _id?: string;
+  name: string;
+  price: number;
+  stock: number;
+  sku?: string;
+  isActive?: boolean;
+}
+
 export interface Product {
   _id: string;
   name: string;
@@ -8,6 +17,8 @@ export interface Product {
   description: string;
   stock: number;
   isActive: boolean;
+  options?: ProductOption[];
+  hasOptions?: boolean; // Virtual field from backend
   createdAt: string;
   updatedAt: string;
 }

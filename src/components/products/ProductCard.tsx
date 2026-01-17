@@ -15,11 +15,29 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [showDialog, setShowDialog] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  const isOutOfStock = product.stock === 0 || !product.isActive;
-  const isLowStock = product.stock > 0 && product.stock <= 5;
+  const hasOptions = product.hasOptions || (product.options && product.options.length > 0);
+
+  // Calculate stock: sum of options or base stock
+  const totalStock = hasOptions
+    ? product.options?.reduce((sum, opt) => sum + opt.stock, 0) || 0
+    : product.stock;
+
+  const isOutOfStock = totalStock === 0 || !product.isActive;
+  const isLowStock = totalStock > 0 && totalStock <= 5;
+
+  // Get minimum price for products with options
+  const minPrice = hasOptions && product.options && product.options.length > 0
+    ? Math.min(...product.options.map(opt => opt.price))
+    : product.price;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
+
+    // Products with options must be added through detail dialog
+    if (hasOptions) {
+      setShowDialog(true);
+      return;
+    }
 
     if (isOutOfStock) {
       toast.error("Out of stock", {
@@ -73,7 +91,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               variant="secondary"
               className="absolute top-2 right-2 bg-orange-500 text-white"
             >
-              Only {product.stock} left
+              Only {totalStock} left
             </Badge>
           )}
         </div>
@@ -87,7 +105,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           </p>
           <p className="text-base font-semibold text-primary">
-            GH₵{product.price.toFixed(2)}
+            {hasOptions ? `From GH₵${minPrice.toFixed(2)}` : `GH₵${product.price.toFixed(2)}`}
           </p>
         </CardContent>
         <CardFooter className="p-4 pt-0">
@@ -98,7 +116,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             disabled={isOutOfStock}
           >
             <ShoppingCart className="w-4 h-4" />
-            {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+            {isOutOfStock ? "Out of Stock" : hasOptions ? "Select Options" : "Add to Cart"}
           </Button>
         </CardFooter>
       </Card>

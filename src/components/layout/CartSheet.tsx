@@ -58,66 +58,78 @@ export default function CartSheet({ children }: CartSheetProps) {
             />
           ) : (
             <div className="space-y-4">
-              {items.map((item) => (
-                <div
-                  key={item._id}
-                  className="flex gap-4 p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg"
-                >
-                  {/* Product Image */}
-                  <div className="w-20 h-20 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+              {items.map((item) => {
+                const itemPrice = item.selectedOption
+                  ? item.selectedOption.optionPrice
+                  : item.price;
+                const itemId = item.cartItemId || item._id;
 
-                  {/* Product Info */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-sm line-clamp-1 mb-1">
-                      {item.name}
-                    </h4>
-                    <p className="font-bold text-primary">
-                      GH₵{item.price.toFixed(2)}
-                    </p>
+                return (
+                  <div
+                    key={itemId}
+                    className="flex gap-4 p-4 border border-neutral-200 dark:border-neutral-800 rounded-lg"
+                  >
+                    {/* Product Image */}
+                    <div className="w-20 h-20 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-2 mt-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity - 1)
-                        }
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className="text-sm font-medium w-8 text-center">
-                        {item.quantity}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity + 1)
-                        }
-                      >
-                        <Plus className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-auto text-destructive hover:text-destructive h-7 px-2"
-                        onClick={() => removeItem(item._id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm line-clamp-1 mb-1">
+                        {item.name}
+                      </h4>
+                      {item.selectedOption && (
+                        <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-1">
+                          {item.selectedOption.optionName}
+                        </p>
+                      )}
+                      <p className="font-bold text-primary">
+                        GH₵{itemPrice.toFixed(2)}
+                      </p>
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center gap-2 mt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() =>
+                            updateQuantity(itemId, item.quantity - 1)
+                          }
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="text-sm font-medium w-8 text-center">
+                          {item.quantity}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() =>
+                            updateQuantity(itemId, item.quantity + 1)
+                          }
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-auto text-destructive hover:text-destructive h-7 px-2"
+                          onClick={() => removeItem(itemId)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
