@@ -9,7 +9,7 @@ export interface OrderItem {
 
 export interface CustomerInfo {
   name: string;
-  email: string;
+  email?: string;
   phone: string;
 }
 

@@ -167,7 +167,7 @@ function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6 xl:gap-8 2xl:gap-10">
               {loading ? (
                 <div className="col-span-full text-center py-12">
                   <p className="text-neutral-600 dark:text-neutral-400">

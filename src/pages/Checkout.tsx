@@ -14,6 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,7 +32,8 @@ const checkoutSchema = z
     email: z
       .string()
       .email("Invalid email address")
-      .min(1, "Email is required for payment"),
+      .optional()
+      .or(z.literal("")),
     deliveryMethod: z.enum(["pickup", "delivery"]),
     address: z.string().optional(),
     country: z.string().optional(),
@@ -201,7 +203,7 @@ function Checkout() {
 
   // Paystack component props
   const paystackProps = {
-    email: checkoutData?.email || "",
+    email: checkoutData?.email || "lucysperfumery@gmail.com",
     amount: convertToPesewas(getTotalPrice()),
     publicKey: PAYSTACK_PUBLIC_KEY,
     text: isProcessingPayment ? "Processing..." : "Proceed to Payment",
@@ -338,15 +340,18 @@ function Checkout() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email *</FormLabel>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
-                              placeholder="john@example.com"
+                              placeholder="Optional - leave blank if you don't have one"
                               {...field}
                               className="w-full"
                             />
                           </FormControl>
+                          <FormDescription>
+                            If you don't have an email, leave this blank and we'll process your order via phone/SMS
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

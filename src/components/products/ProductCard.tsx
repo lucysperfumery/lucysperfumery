@@ -95,27 +95,27 @@ export default function ProductCard({ product }: ProductCardProps) {
             </Badge>
           )}
         </div>
-        <CardContent className="px-4">
-          <p className="font-semibold text-base hover:text-primary transition-colors text-clip overflow-hidden whitespace-nowrap">
+        <CardContent className="px-4 lg:px-6 py-4 lg:py-5">
+          <p className="font-semibold text-base lg:text-lg hover:text-primary transition-colors line-clamp-2 mb-2">
             {product.name}
           </p>
-          <p className="mb-4">
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mb-3 lg:mb-4">
+            <span className="text-sm lg:text-base text-neutral-600 dark:text-neutral-400">
               {product.category}
             </span>
           </p>
-          <p className="text-base font-semibold text-primary">
+          <p className="text-base lg:text-xl font-semibold text-primary">
             {hasOptions ? `From GH₵${minPrice.toFixed(2)}` : `GH₵${product.price.toFixed(2)}`}
           </p>
         </CardContent>
-        <CardFooter className="p-4 pt-0">
+        <CardFooter className="p-4 pt-0 lg:px-6 lg:pb-6">
           <Button
-            className="flex items-center justify-between px-2.5 w-full"
+            className="flex items-center justify-between px-3 lg:px-4 w-full"
             size="lg"
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
           >
-            <ShoppingCart className="w-4 h-4" />
+            <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5" />
             {isOutOfStock ? "Out of Stock" : hasOptions ? "Select Options" : "Add to Cart"}
           </Button>
         </CardFooter>
