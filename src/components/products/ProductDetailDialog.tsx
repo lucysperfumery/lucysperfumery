@@ -92,12 +92,12 @@ export default function ProductDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChangeWrapper}>
-      <DialogContent className="max-w-5xl w-[200vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[calc(100%-1rem)] sm:max-w-[calc(100%-2rem)] md:max-w-3xl lg:max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="sr-only">Product Details</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Product Image */}
           <div className="aspect-square overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
             <img
@@ -108,7 +108,7 @@ export default function ProductDetailDialog({
           </div>
 
           {/* Product Info */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-2">
                 <Link
@@ -121,16 +121,16 @@ export default function ProductDetailDialog({
                   {product.category}
                 </Link>
               </div>
-              <h2 className="text-xl font-bold mb-1">{product.name}</h2>
-              <p className="text-xl font-semibold text-primary mb-4">
+              <h2 className="text-lg sm:text-xl font-bold mb-1">{product.name}</h2>
+              <p className="text-lg sm:text-xl font-semibold text-primary mb-3 sm:mb-4">
                 GH₵{currentPrice.toFixed(2)}
               </p>
             </div>
 
             {/* Description */}
-            <Card className="p-3 bg-neutral-50 dark:bg-neutral-900">
-              <p className="font-semibold">Description</p>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            <Card className="p-2.5 sm:p-3 bg-neutral-50 dark:bg-neutral-900">
+              <p className="text-sm sm:text-base font-semibold mb-1">Description</p>
+              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
                 {product.description}
               </p>
             </Card>
@@ -138,7 +138,7 @@ export default function ProductDetailDialog({
             {/* Product Options */}
             {hasOptions && product.options && product.options.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-3">Select Option</h3>
+                <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">Select Option</h3>
                 <RadioGroup
                   value={selectedOption?._id || ""}
                   onValueChange={(value) => {
@@ -147,12 +147,12 @@ export default function ProductDetailDialog({
                     );
                     if (option) setSelectedOption(option);
                   }}
-                  className="space-y-2"
+                  className="space-y-1.5 sm:space-y-2"
                 >
                   {product.options.map((option) => (
                     <div
                       key={option._id}
-                      className={`flex items-center justify-between border rounded-lg p-3 cursor-pointer transition-colors ${
+                      className={`flex items-center justify-between border rounded-lg p-2.5 sm:p-3 cursor-pointer transition-colors ${
                         selectedOption?._id === option._id
                           ? "border-primary bg-primary/5"
                           : "border-neutral-200 dark:border-neutral-700 hover:border-primary/50"
@@ -165,7 +165,7 @@ export default function ProductDetailDialog({
                         if (option.stock > 0) setSelectedOption(option);
                       }}
                     >
-                      <div className="flex items-center gap-3 flex-1">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1">
                         <RadioGroupItem
                           value={option._id!}
                           id={option._id}
@@ -176,30 +176,30 @@ export default function ProductDetailDialog({
                           className="flex items-center justify-between flex-1 cursor-pointer"
                         >
                           <div>
-                            <p className="font-medium">{option.name}</p>
+                            <p className="text-sm sm:text-base font-medium">{option.name}</p>
                             {option.sku && (
-                              <p className="text-xs text-neutral-500">
+                              <p className="text-[10px] sm:text-xs text-neutral-500">
                                 SKU: {option.sku}
                               </p>
                             )}
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">
+                            <p className="text-sm sm:text-base font-semibold">
                               GH₵{option.price.toFixed(2)}
                             </p>
                             {option.stock === 0 ? (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="destructive" className="text-[10px] sm:text-xs">
                                 Out of Stock
                               </Badge>
                             ) : option.stock <= 5 ? (
                               <Badge
                                 variant="secondary"
-                                className="text-xs bg-orange-500 text-white"
+                                className="text-[10px] sm:text-xs bg-orange-500 text-white"
                               >
                                 {option.stock} left
                               </Badge>
                             ) : (
-                              <p className="text-xs text-neutral-500">
+                              <p className="text-[10px] sm:text-xs text-neutral-500">
                                 In Stock
                               </p>
                             )}
@@ -214,31 +214,31 @@ export default function ProductDetailDialog({
 
             {/* Quantity Selector */}
             <div>
-              <h3 className="font-semibold mb-2">Quantity</h3>
-              <div className="flex items-center gap-3">
+              <h3 className="text-sm sm:text-base font-semibold mb-2">Quantity</h3>
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 w-9 p-0"
+                  className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                   onClick={decrementQuantity}
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
-                <span className="text-lg font-medium w-12 text-center">
+                <span className="text-base sm:text-lg font-medium w-10 sm:w-12 text-center">
                   {quantity}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 w-9 p-0"
+                  className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                   onClick={incrementQuantity}
                   disabled={quantity >= availableStock}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               </div>
               {availableStock <= 5 && availableStock > 0 && (
-                <p className="text-xs text-orange-600 mt-1">
+                <p className="text-[10px] sm:text-xs text-orange-600 mt-1">
                   Only {availableStock} available
                 </p>
               )}
@@ -246,7 +246,7 @@ export default function ProductDetailDialog({
 
             {/* Add to Cart Button */}
             <Button
-              className="w-full"
+              className="w-full text-sm sm:text-base"
               size="lg"
               onClick={handleAddToCart}
               disabled={availableStock === 0 || (hasOptions && !selectedOption)}
