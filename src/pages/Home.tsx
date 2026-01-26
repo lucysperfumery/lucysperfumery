@@ -196,6 +196,28 @@ function HomePage() {
             </div>
           </div>
         </div>
+        <footer>
+          <div className="w-full bg-gray-100 dark:bg-gray-800 py-6 mt-12">
+            <div className="container mx-auto px-4 md:px-6 lg:px-8 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                &copy; {new Date().getFullYear()} Lucy's Perfumery. All rights
+                reserved.
+              </p>
+
+              <p className="text-sm dark:text-gray-400 mt-2">
+                developed by{" "}
+                <a
+                  href="https://thelocalgodd.me"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pink-500 hover:underline transition-all"
+                >
+                  Vincent Kwaku
+                </a>
+              </p>
+            </div>
+          </div>
+        </footer>
       </main>
     </>
   );

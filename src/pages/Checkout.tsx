@@ -203,7 +203,7 @@ function Checkout() {
 
   // Paystack component props
   const paystackProps = {
-    email: checkoutData?.email || "lucysperfumery@gmail.com",
+    email: checkoutData?.email || `temp_${Date.now()}@noemail.lucysperfumery.com`,
     amount: convertToPesewas(getTotalPrice()),
     publicKey: PAYSTACK_PUBLIC_KEY,
     text: isProcessingPayment ? "Processing..." : "Proceed to Payment",
