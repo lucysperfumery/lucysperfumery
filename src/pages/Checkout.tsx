@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,10 +19,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ShoppingCart, Trash2 } from "lucide-react";
-import { PaystackButton } from "react-paystack";
-import { PAYSTACK_PUBLIC_KEY, convertToPesewas } from "@/lib/paystack";
-import orderService from "@/services/orderService";
+import { ShoppingCart, Trash2, MessageCircle } from "lucide-react";
+// PAYSTACK DISABLED - NOW USING WHATSAPP CHECKOUT
+// import { PaystackButton } from "react-paystack";
+// import { PAYSTACK_PUBLIC_KEY, convertToPesewas } from "@/lib/paystack";
+// import orderService from "@/services/orderService";
 
 // Form schema with conditional validation
 const checkoutSchema = z
@@ -49,7 +50,7 @@ const checkoutSchema = z
     {
       message: "Delivery address is required for delivery orders",
       path: ["address"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -61,7 +62,7 @@ const checkoutSchema = z
     {
       message: "Country is required for delivery orders",
       path: ["country"],
-    }
+    },
   );
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -70,12 +71,17 @@ function Checkout() {
   const navigate = useNavigate();
   const { items, getTotalPrice, clearCart, removeItem, updateQuantity } =
     useCartStore();
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentReference, setPaymentReference] = useState<string>("");
-  const [checkoutData, setCheckoutData] = useState<CheckoutFormValues | null>(
-    null
-  );
-  const paystackButtonRef = useRef<HTMLDivElement>(null);
+  // PAYSTACK DISABLED - NOW USING WHATSAPP CHECKOUT
+  // const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  // const [paymentReference, setPaymentReference] = useState<string>("");
+  // const [checkoutData, setCheckoutData] = useState<CheckoutFormValues | null>(
+  //   null
+  // );
+  // const paystackButtonRef = useRef<HTMLDivElement>(null);
+
+  // WhatsApp configuration
+  const WHATSAPP_NUMBER = "233555271090"; // +233555271090
+  const [isRedirectingToWhatsApp, setIsRedirectingToWhatsApp] = useState(false);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -99,7 +105,8 @@ function Checkout() {
     }
   }, [items.length, navigate]);
 
-  // Auto-trigger PaystackButton when checkout data is ready
+  // PAYSTACK CODE COMMENTED OUT - NOW USING WHATSAPP
+  // // Auto-trigger PaystackButton when checkout data is ready
   // useEffect(() => {
   //   if (checkoutData && paymentReference && paystackButtonRef.current) {
   //     // Small delay to ensure button is rendered and ready
@@ -111,121 +118,152 @@ function Checkout() {
   //   }
   // }, [checkoutData, paymentReference]);
 
-  const onSubmit = async (data: CheckoutFormValues) => {
-    // Generate unique payment reference
-    const reference = `LP${Date.now()}${Math.floor(Math.random() * 1000)}`;
+  // Function to format order message for WhatsApp
+  const formatWhatsAppMessage = (data: CheckoutFormValues) => {
+    const itemsList = items
+      .map((item) => {
+        const itemPrice = item.selectedOption
+          ? item.selectedOption.optionPrice
+          : item.price;
+        const optionText = item.selectedOption
+          ? ` (${item.selectedOption.optionName})`
+          : "";
+        return `• ${item.name}${optionText}\n  ${item.quantity}x - GH₵${itemPrice.toFixed(2)} = GH₵${(item.quantity * itemPrice).toFixed(2)}`;
+      })
+      .join("\n\n");
 
-    // Store checkout data and reference for use after payment
-    setCheckoutData(data);
-    setPaymentReference(reference);
+    const deliveryInfo =
+      data.deliveryMethod === "delivery"
+        ? `*Delivery Address:*\n${data.address}\n*Country:* ${data.country}`
+        : "*Pickup:* I will pick up from your store";
 
-    // Don't set processing state here - let PaystackButton handle it
+    const specialInstructions = data.specialInstructions
+      ? `\n\n*Special Instructions:*\n${data.specialInstructions}`
+      : "";
+
+    return `*NEW ORDER - Lucy's Perfumery* 🛍️
+
+*Customer Details:*
+Name: ${data.name}
+Phone: ${data.phone}${data.email ? `\nEmail: ${data.email}` : ""}
+
+*Order Items:*
+${itemsList}
+
+*Total Amount: GH₵${getTotalPrice().toFixed(2)}*
+
+*Delivery Method:*
+${deliveryInfo}${specialInstructions}
+
+I would like to complete this order. Please let me know the payment details. Thank you!`;
   };
 
-  const handlePaymentSuccess = async (reference: any) => {
-    if (!checkoutData) return;
-
-    setIsProcessingPayment(true);
+  const onSubmit = async (data: CheckoutFormValues) => {
+    setIsRedirectingToWhatsApp(true);
 
     try {
-      // Create order on backend with payment reference
-      const orderPayload = {
-        customer: {
-          name: checkoutData.name,
-          email: checkoutData.email,
-          phone: checkoutData.phone,
-        },
-        items: items.map((item) => ({
-          productId: item._id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.selectedOption
-            ? item.selectedOption.optionPrice
-            : item.price,
-          selectedOption: item.selectedOption || undefined,
-        })),
+      // Format the WhatsApp message
+      const message = formatWhatsAppMessage(data);
+      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+      // Save order data to localStorage for confirmation page
+      const orderData = {
+        customer: data,
+        items: items,
         totalAmount: getTotalPrice(),
-        paystackReference: reference.reference || paymentReference,
-        metadata: {
-          deliveryMethod: checkoutData.deliveryMethod,
-          deliveryAddress:
-            checkoutData.deliveryMethod === "delivery"
-              ? checkoutData.address
-              : undefined,
-          country:
-            checkoutData.deliveryMethod === "delivery"
-              ? checkoutData.country
-              : undefined,
-          specialInstructions: checkoutData.specialInstructions,
-        },
+        timestamp: new Date().toISOString(),
       };
-
-      const createOrderResponse = await orderService.createOrder(orderPayload);
-
-      // Save order to localStorage for confirmation page
-      localStorage.setItem(
-        "lastOrder",
-        JSON.stringify(createOrderResponse.order)
-      );
+      localStorage.setItem("lastOrder", JSON.stringify(orderData));
 
       // Clear cart
       clearCart();
 
       // Show success toast
-      toast.success("Payment successful!", {
-        description: `Order #${createOrderResponse.order._id.slice(
-          -8
-        )} has been placed`,
+      toast.success("Redirecting to WhatsApp!", {
+        description: "Complete your order via WhatsApp chat",
       });
 
-      // Reset processing state
-      setIsProcessingPayment(false);
+      // Open WhatsApp
+      window.open(whatsappUrl, "_blank");
 
-      // Redirect to order confirmation
-      navigate("/order-confirmation");
-    } catch (error) {
-      setIsProcessingPayment(false);
-      toast.error("Order creation failed", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "Please contact support with your payment reference",
+      // Redirect to confirmation page after a brief delay
+      setTimeout(() => {
+        navigate("/order-confirmation");
+      }, 1000);
+    } catch {
+      setIsRedirectingToWhatsApp(false);
+      toast.error("Failed to redirect", {
+        description: "Please try again or contact us directly",
       });
     }
   };
 
-  const handlePaymentClose = () => {
-    setIsProcessingPayment(false);
-    toast.error("Payment cancelled", {
-      description: "You can try again when ready",
-    });
-  };
+  // PAYSTACK FUNCTIONS COMMENTED OUT
+  // const handlePaymentSuccess = async (reference: any) => {
+  //   if (!checkoutData) return;
+  //   setIsProcessingPayment(true);
+  //   try {
+  //     const orderPayload = {
+  //       customer: {
+  //         name: checkoutData.name,
+  //         email: checkoutData.email,
+  //         phone: checkoutData.phone,
+  //       },
+  //       items: items.map((item) => ({
+  //         productId: item._id,
+  //         name: item.name,
+  //         quantity: item.quantity,
+  //         price: item.selectedOption ? item.selectedOption.optionPrice : item.price,
+  //         selectedOption: item.selectedOption || undefined,
+  //       })),
+  //       totalAmount: getTotalPrice(),
+  //       paystackReference: reference.reference || paymentReference,
+  //       metadata: {
+  //         deliveryMethod: checkoutData.deliveryMethod,
+  //         deliveryAddress: checkoutData.deliveryMethod === "delivery" ? checkoutData.address : undefined,
+  //         country: checkoutData.deliveryMethod === "delivery" ? checkoutData.country : undefined,
+  //         specialInstructions: checkoutData.specialInstructions,
+  //       },
+  //     };
+  //     const createOrderResponse = await orderService.createOrder(orderPayload);
+  //     localStorage.setItem("lastOrder", JSON.stringify(createOrderResponse.order));
+  //     clearCart();
+  //     toast.success("Payment successful!", {
+  //       description: `Order #${createOrderResponse.order._id.slice(-8)} has been placed`,
+  //     });
+  //     setIsProcessingPayment(false);
+  //     navigate("/order-confirmation");
+  //   } catch (error) {
+  //     setIsProcessingPayment(false);
+  //     toast.error("Order creation failed", {
+  //       description: error instanceof Error ? error.message : "Please contact support",
+  //     });
+  //   }
+  // };
 
-  // Paystack component props
-  const paystackProps = {
-    email: checkoutData?.email || `temp_${Date.now()}@noemail.lucysperfumery.com`,
-    amount: convertToPesewas(getTotalPrice()),
-    publicKey: PAYSTACK_PUBLIC_KEY,
-    text: isProcessingPayment ? "Processing..." : "Proceed to Payment",
-    reference: paymentReference,
-    currency: "GHS",
-    metadata: {
-      custom_fields: [
-        {
-          display_name: "Customer Name",
-          variable_name: "customer_name",
-          value: checkoutData?.name || "",
-        },
-        {
-          display_name: "Phone Number",
-          variable_name: "phone_number",
-          value: checkoutData?.phone || "",
-        },
-      ],
-    },
-    onSuccess: handlePaymentSuccess,
-    onClose: handlePaymentClose,
-  };
+  // const handlePaymentClose = () => {
+  //   setIsProcessingPayment(false);
+  //   toast.error("Payment cancelled", {
+  //     description: "You can try again when ready",
+  //   });
+  // };
+
+  // const paystackProps = {
+  //   email: checkoutData?.email || `temp_${Date.now()}@noemail.lucysperfumery.com`,
+  //   amount: convertToPesewas(getTotalPrice()),
+  //   publicKey: PAYSTACK_PUBLIC_KEY,
+  //   text: isProcessingPayment ? "Processing..." : "Proceed to Payment",
+  //   reference: paymentReference,
+  //   currency: "GHS",
+  //   metadata: {
+  //     custom_fields: [
+  //       { display_name: "Customer Name", variable_name: "customer_name", value: checkoutData?.name || "" },
+  //       { display_name: "Phone Number", variable_name: "phone_number", value: checkoutData?.phone || "" },
+  //     ],
+  //   },
+  //   onSuccess: handlePaymentSuccess,
+  //   onClose: handlePaymentClose,
+  // };
 
   if (items.length === 0) {
     return null;
@@ -350,7 +388,8 @@ function Checkout() {
                             />
                           </FormControl>
                           <FormDescription>
-                            If you don't have an email, leave this blank and we'll process your order via phone/SMS
+                            If you don't have an email, leave this blank and
+                            we'll process your order via phone/SMS
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -424,23 +463,27 @@ function Checkout() {
                     />
 
                     {/* Submit Button - Mobile */}
-                    {!checkoutData ? (
-                      <Button
-                        type="submit"
-                        size="lg"
-                        className="w-full lg:hidden"
-                        disabled={isProcessingPayment}
-                      >
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full lg:hidden bg-[#25D366] hover:bg-[#20BD5A] text-white"
+                      disabled={isRedirectingToWhatsApp}
+                    >
+                      {isRedirectingToWhatsApp
+                        ? "Opening WhatsApp..."
+                        : "Order via WhatsApp"}
+                    </Button>
+
+                    {/* PAYSTACK BUTTON COMMENTED OUT */}
+                    {/* {!checkoutData ? (
+                      <Button type="submit" size="lg" className="w-full lg:hidden" disabled={isProcessingPayment}>
                         Continue to Payment
                       </Button>
                     ) : (
                       <div ref={paystackButtonRef}>
-                        <PaystackButton
-                          {...paystackProps}
-                          className="w-full lg:hidden px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 disabled:opacity-50"
-                        />
+                        <PaystackButton {...paystackProps} className="w-full lg:hidden px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 disabled:opacity-50" />
                       </div>
-                    )}
+                    )} */}
                   </form>
                 </Form>
               </CardContent>
@@ -495,7 +538,7 @@ function Checkout() {
                               onClick={() =>
                                 updateQuantity(
                                   itemId,
-                                  Math.max(1, item.quantity - 1)
+                                  Math.max(1, item.quantity - 1),
                                 )
                               }
                             >
@@ -551,21 +594,25 @@ function Checkout() {
                 </div>
 
                 {/* Submit Button - Desktop */}
-                {!checkoutData ? (
-                  <Button
-                    onClick={form.handleSubmit(onSubmit)}
-                    size="lg"
-                    className="w-full hidden lg:block"
-                    disabled={isProcessingPayment}
-                  >
+                <Button
+                  onClick={form.handleSubmit(onSubmit)}
+                  size="lg"
+                  className="w-full hidden lg:block bg-[#25D366] hover:bg-[#20BD5A] text-white"
+                  disabled={isRedirectingToWhatsApp}
+                >
+                  {isRedirectingToWhatsApp
+                    ? "Opening WhatsApp..."
+                    : "Order via WhatsApp"}
+                </Button>
+
+                {/* PAYSTACK BUTTON COMMENTED OUT */}
+                {/* {!checkoutData ? (
+                  <Button onClick={form.handleSubmit(onSubmit)} size="lg" className="w-full hidden lg:block" disabled={isProcessingPayment}>
                     Continue to Payment
                   </Button>
                 ) : (
-                  <PaystackButton
-                    {...paystackProps}
-                    className="w-full hidden lg:block px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 disabled:opacity-50"
-                  />
-                )}
+                  <PaystackButton {...paystackProps} className="w-full hidden lg:block px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 disabled:opacity-50" />
+                )} */}
               </CardContent>
             </Card>
           </div>
