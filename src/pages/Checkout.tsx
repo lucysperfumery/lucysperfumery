@@ -71,7 +71,7 @@ function Checkout() {
   const navigate = useNavigate();
   const { items, getTotalPrice, clearCart, removeItem, updateQuantity } =
     useCartStore();
-  // PAYSTACK DISABLED - NOW USING WHATSAPP CHECKOUT
+
   // const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   // const [paymentReference, setPaymentReference] = useState<string>("");
   // const [checkoutData, setCheckoutData] = useState<CheckoutFormValues | null>(
