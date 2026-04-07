@@ -105,18 +105,6 @@ function Checkout() {
     }
   }, [items.length, navigate]);
 
-  // PAYSTACK CODE COMMENTED OUT - NOW USING WHATSAPP
-  // // Auto-trigger PaystackButton when checkout data is ready
-  // useEffect(() => {
-  //   if (checkoutData && paymentReference && paystackButtonRef.current) {
-  //     // Small delay to ensure button is rendered and ready
-  //     const timer = setTimeout(() => {
-  //       const button = paystackButtonRef.current?.querySelector('button');
-  //       button?.click();
-  //     }, 100);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [checkoutData, paymentReference]);
 
   // Function to format order message for WhatsApp
   const formatWhatsAppMessage = (data: CheckoutFormValues) => {
@@ -141,6 +129,18 @@ function Checkout() {
       ? `\n\n*Special Instructions:*\n${data.specialInstructions}`
       : "";
 
+    const now = new Date();
+    const timestamp = now.toLocaleString("en-GB", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+
     return `*NEW ORDER - Lucy's Perfumery* 🛍️
 
 *Customer Details:*
@@ -155,7 +155,9 @@ ${itemsList}
 *Delivery Method:*
 ${deliveryInfo}${specialInstructions}
 
-I would like to complete this order. Please let me know the payment details. Thank you!`;
+I would like to complete this order. Please let me know the payment details. Thank you!
+
+*Order placed:* ${timestamp}`;
   };
 
   const onSubmit = async (data: CheckoutFormValues) => {
