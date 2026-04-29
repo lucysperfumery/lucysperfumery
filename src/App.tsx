@@ -8,6 +8,7 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import Navbar from "./components/layout/Navbar";
 import WhatsAppButton from "./components/layout/WhatsAppButton";
 import { Toaster } from "sonner";
+import MaintenancePage from "./pages/Maintenance";
 
 function App() {
   return (
@@ -17,12 +18,14 @@ function App() {
         <Toaster position="top-center" richColors />
         <div className="flex-1 md:pt-0 pb-16 md:pb-0">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            {/* <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/category/:categoryName" element={<Products />} />
             <Route path="/products/:productSlug" element={<ProductDetail />} />
             <Route path="/checkout" element={<Checkout />} />
-            <Route path="/order-confirmation" element={<OrderConfirmation />} />
+            <Route path="/order-confirmation" element={<OrderConfirmation />} /> */}
+
+            <Route path="/" element={<MaintenancePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
