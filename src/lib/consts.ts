@@ -49,4 +49,13 @@ export const categories = [
   "Strong Perfumes",
   "Zimaya",
   "Gulf Orchid",
+  "Zara Perfumes",
+  "Nusuk",
+  "Swiss Arabian",
+  "Reef",
+  "Almed Al Maghribi",
+  "Assaf",
+  "Combos",
+  "Splashes",
+  "Others",
 ];

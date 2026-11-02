@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Search } from "lucide-react";
 import {
   type ProductFilters as FilterType,
@@ -12,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const MOBILE_VISIBLE_COUNT = 8;
+
 interface ProductFiltersProps {
   filters: FilterType;
   onFiltersChange: (filters: FilterType) => void;
@@ -21,15 +24,26 @@ export default function ProductFilters({
   filters,
   onFiltersChange,
 }: ProductFiltersProps) {
+  const [showAll, setShowAll] = useState(false);
+
   const handleCategoryChange = (value: string) => {
     // If "all" is selected, clear categories, otherwise set the selected category
     const newCategories = value === "all" ? [] : [value];
     onFiltersChange({ ...filters, categories: newCategories });
   };
 
-  // Get current selected category value for the dropdown
+  // Get current selected category value
   const currentCategory =
     filters.categories.length > 0 ? filters.categories[0] : "all";
+
+  const sortedCategories = [...categories].sort((a, b) => a.localeCompare(b));
+
+  const chipClass = (active: boolean) =>
+    `px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      active
+        ? "bg-primary text-primary-foreground"
+        : "bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+    }`;
 
   return (
     <div className="space-y-2">
@@ -48,23 +62,6 @@ export default function ProductFilters({
             className="w-full pl-10 pr-4 py-2 border border-neutral-200 dark:border-neutral-800 rounded-md bg-white dark:bg-neutral-950 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-
-        {/* Category Select */}
-        <Select value={currentCategory} onValueChange={handleCategoryChange}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories
-              .sort((a, b) => a.localeCompare(b))
-              .map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
 
         {/* Sort */}
         <Select
@@ -86,6 +83,41 @@ export default function ProductFilters({
             <SelectItem value="price-desc">Price (High to Low)</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Category chips: all on desktop, first few on mobile until expanded */}
+      <div className="flex flex-wrap gap-2 pt-2">
+        <button
+          type="button"
+          onClick={() => handleCategoryChange("all")}
+          aria-pressed={currentCategory === "all"}
+          className={chipClass(currentCategory === "all")}
+        >
+          All
+        </button>
+        {sortedCategories.map((category, index) => (
+          <button
+            key={category}
+            type="button"
+            onClick={() => handleCategoryChange(category)}
+            aria-pressed={currentCategory === category}
+            className={`${chipClass(currentCategory === category)} ${
+              !showAll && index >= MOBILE_VISIBLE_COUNT
+                ? "hidden md:inline-block"
+                : ""
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setShowAll((prev) => !prev)}
+          aria-expanded={showAll}
+          className="md:hidden px-4 py-2 rounded-full text-sm font-medium text-primary underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {showAll ? "Show less" : "Show more"}
+        </button>
       </div>
     </div>
   );
